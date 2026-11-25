@@ -340,6 +340,23 @@ let modalState = {
   selectedSim: null,
 };
 
+// Єдина формула ціни для модалки: і при відкритті, і при зміні опцій.
+// Надбавка за SIM — це різниця відносно SIM-версії, з якою товар
+// відкрився, тому без зміни опцій ціна ніколи не "стрибає".
+const SIM_SURCHARGE = { 'eSIM': 0, 'SIM + eSIM': 1500, 'Dual SIM': 2500 };
+
+function getModalPrice(product, storage, sim) {
+  const modelPrices = PRICE_TABLE[product.model] || {};
+  let result = modelPrices[storage] ?? product.price;
+
+  // Для товару з каталогу з його власним обсягом беремо його власну ціну
+  // (важливо для Б/У, де ціна може відрізнятися від PRICE_TABLE)
+  if (storage === product.storage) result = product.price;
+
+  result += (SIM_SURCHARGE[sim] || 0) - (SIM_SURCHARGE[product.sim] || 0);
+  return result;
+}
+
 function openModal(product) {
   const overlay = document.getElementById('productModal');
   if (!overlay) return;
@@ -374,7 +391,7 @@ function openModal(product) {
   // Title / subtitle / price / desc
   document.getElementById('modalTitle').textContent = product.model;
   document.getElementById('modalSubtitle').textContent = `${product.storage} · ${product.color} · ${product.year} рік`;
-  document.getElementById('modalPrice').textContent = price(product.price);
+  document.getElementById('modalPrice').textContent = price(getModalPrice(product, product.storage, product.sim));
   document.getElementById('modalDesc').textContent = MODEL_DESCRIPTIONS[product.model] || '';
 
   // SIM options
@@ -444,7 +461,7 @@ function updateModalFromState() {
   if (modalState.selectedSim === 'SIM + eSIM') dynamicPrice += 1500;
   if (modalState.selectedSim === 'Dual SIM')   dynamicPrice += 2500;
 
-  document.getElementById('modalPrice').textContent = price(dynamicPrice);
+  document.getElementById('modalPrice').textContent = price(getModalPrice(baseModel, modalState.selectedStorage, modalState.selectedSim));
   document.getElementById('modalSubtitle').textContent =
       `${modalState.selectedStorage} · ${modalState.selectedColor} · ${baseModel.year} рік`;
 
@@ -509,7 +526,7 @@ function bindModal() {
 
   // Якщо перевірка успішна — збираємо дані моделі та ціну
   const model = `${modalState.product.model} (${modalState.selectedStorage}, ${modalState.selectedSim})`;
-  const price = document.getElementById('modalPrice').textContent;
+  const price = getModalPrice(modalState.product, modalState.selectedStorage, modalState.selectedSim);
 
   try {
     const response = await fetch('/api/order', {
