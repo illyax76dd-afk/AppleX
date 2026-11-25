@@ -419,13 +419,6 @@
 // =============================================================
 (function () {
 
-  // -----------------------------------------------------------
-  // Зображення моделей (беремо з глобального MODEL_IMAGES)
-  // Якщо script.js ще не завантажений — fallback на порожній рядок
-  // -----------------------------------------------------------
-  var IMG = (typeof MODEL_IMAGES !== 'undefined') ? MODEL_IMAGES : {};
-
-  // Fallback SVG-іконка якщо фото не завантажилось
   function fallbackSvg(color, w, h) {
     w = w||52; h = h||101;
     return 'data:image/svg+xml,' + encodeURIComponent(
@@ -452,7 +445,7 @@
 
   // Отримати URL фото моделі (з глобального об'єкту)
   function modelImg(name) {
-    return IMG[name] || '';
+    return getModelImage(name);
   }
 
   // Розрахунок Trade-In оцінки

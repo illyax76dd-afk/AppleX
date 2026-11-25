@@ -417,12 +417,8 @@ function closeModal() {
 // Ставить у модалці фото потрібного кольору. Якщо файл кольору не знайдено
 // (ще не завантажений) — показує загальне фото моделі.
 function setModalImage(imgEl, model, color) {
-  const src = getModelImage(model, color);
-  imgEl.onerror = () => {
-    imgEl.onerror = null;
-    imgEl.src = MODEL_IMAGES[model] || '';
-  };
-  imgEl.src = src;
+  imgEl.onerror = () => { imgEl.onerror = null; imgEl.removeAttribute('src'); };
+  imgEl.src = getModelImage(model, color);
 }
 
 function updateModalFromState() {
