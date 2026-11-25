@@ -452,15 +452,6 @@ function updateModalFromState() {
     }, 150);
   }
 
-  // Шукаємо точну ціну з таблиці: модель → пам'ять
-  const modelPrices = PRICE_TABLE[baseModel.model] || {};
-  let dynamicPrice = modelPrices[modalState.selectedStorage] ?? baseModel.price;
-
-  // Невелика доплата за версію з фізичною SIM-карткою
-  // (eSIM-only = базова ціна; SIM + eSIM = +1 500 ₴)
-  if (modalState.selectedSim === 'SIM + eSIM') dynamicPrice += 1500;
-  if (modalState.selectedSim === 'Dual SIM')   dynamicPrice += 2500;
-
   document.getElementById('modalPrice').textContent = price(getModalPrice(baseModel, modalState.selectedStorage, modalState.selectedSim));
   document.getElementById('modalSubtitle').textContent =
       `${modalState.selectedStorage} · ${modalState.selectedColor} · ${baseModel.year} рік`;
@@ -526,13 +517,13 @@ function bindModal() {
 
   // Якщо перевірка успішна — збираємо дані моделі та ціну
   const model = `${modalState.product.model} (${modalState.selectedStorage}, ${modalState.selectedSim})`;
-  const price = getModalPrice(modalState.product, modalState.selectedStorage, modalState.selectedSim);
+  const orderPrice = document.getElementById('modalPrice').textContent;
 
   try {
     const response = await fetch('/api/order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, model, price })
+      body: JSON.stringify({ name, phone, model, price: orderPrice })
     });
 
     const data = await response.json();
